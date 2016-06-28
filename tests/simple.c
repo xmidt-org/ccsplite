@@ -22,17 +22,29 @@
 
 #include "../src/ccsplite.h"
 
-void test_1()
+void test_bool()
 {
+    int rv;
     bool b;
-    ccsplite_get_bool( "Device.Info.Webpa.Url", 10000, &b );
-    CU_ASSERT_EQUAL( true, b );
+
+    rv = ccsplite_get_bool( "Device.Invalid.Param", 10000, &b );
+    CU_ASSERT_NOT_EQUAL( 0, rv )
+}
+
+void test_int32_t()
+{
+    int rv;
+    int32_t i32;
+    rv = ccsplite_get_int32( "Device.Valid.IntParam", 10000, &i32 );
+    CU_ASSERT_EQUAL( 0, rv )
+    CU_ASSERT_EQUAL( i32, 512 );
 }
 
 void add_suites( CU_pSuite *suite )
 {
-    *suite = CU_add_suite( "wrp-c encoding tests", NULL, NULL );
-    CU_add_test( *suite, "Test 1", test_1 );
+    *suite = CU_add_suite( "ccsplite encoding tests", NULL, NULL );
+    CU_add_test( *suite, "Test booleans", test_bool );
+    CU_add_test( *suite, "Test int32_t", test_int32_t );
 }
 
 /*----------------------------------------------------------------------------*/

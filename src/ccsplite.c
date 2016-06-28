@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+#include <inttypes.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
@@ -43,9 +44,9 @@ struct payload {
 /*----------------------------------------------------------------------------*/
 /*                             Function Prototypes                            */
 /*----------------------------------------------------------------------------*/
-static int __ccsplite_get_json( const char *obj_name, int32_t timeout,
-                                cJSON **obj );
+static int __get_json( const char *obj_name, int32_t timeout, cJSON **tree );
 static size_t __write_fn( void *p, size_t size, size_t nmemb, void *stream );
+static cJSON* __find_value_field( cJSON *tree );
 
 /*----------------------------------------------------------------------------*/
 /*                             External Functions                             */
@@ -56,12 +57,33 @@ int ccsplite_get_bool( const char *obj_name, int32_t timeout, bool *value )
     cJSON *json;
 
     json = NULL;
-    rv = __ccsplite_get_json( obj_name, timeout, &json );
+    rv = __get_json( obj_name, timeout, &json );
     if( 0 == rv ) {
-        if( cJSON_Number == json->type ) {
-            *value = false;
-            if( 0 != json->valueint ) {
-                *value = true;
+        cJSON *json_val;
+
+        json_val = __find_value_field( json );
+
+        rv = -1;
+        if( NULL != json_val ) {
+            switch( json_val->type ) {
+                case cJSON_Number:
+                    *value = false;
+                    if( 0 != json->valueint ) {
+                        *value = true;
+                    }
+                    rv = 0;
+                    break;
+                case cJSON_String:
+                    if( 0 == strcasecmp("true", json_val->valuestring) ) {
+                        *value = true;
+                        rv = 0;
+                    } else if( 0 == strcasecmp("false", json_val->valuestring) ) {
+                        *value = false;
+                        rv = 0;
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -77,10 +99,34 @@ int ccsplite_get_int32( const char *obj_name, int32_t timeout, int32_t *value )
     cJSON *json;
 
     json = NULL;
-    rv = __ccsplite_get_json( obj_name, timeout, &json );
+    rv = __get_json( obj_name, timeout, &json );
     if( 0 == rv ) {
-        if( cJSON_Number == json->type ) {
-            *value = (int32_t) json->valueint;
+        cJSON *json_val;
+
+        json_val = __find_value_field( json );
+
+        rv = -1;
+        if( NULL != json_val ) {
+            switch( json_val->type ) {
+                case cJSON_Number:
+                    *value = (int32_t) json_val->valueint;
+                    rv = 0;
+                    break;
+                case cJSON_String:
+                {
+                    int32_t tmp;
+                    int _rv;
+
+                    _rv = sscanf( json_val->valuestring, "%" SCNd32, &tmp );
+                    if( 1 == _rv ) {
+                        *value = tmp;
+                        rv = 0;
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
         }
 
         cJSON_Delete( json );
@@ -119,7 +165,7 @@ int ccsplite_get_string( const char *obj_name, int32_t timeout, char **value )
     cJSON *json;
 
     json = NULL;
-    rv = __ccsplite_get_json( obj_name, timeout, &json );
+    rv = __get_json( obj_name, timeout, &json );
     if( 0 == rv ) {
         if( cJSON_String == json->type ) {
             *value = strdup( json->valuestring );
@@ -136,8 +182,7 @@ int ccsplite_get_string( const char *obj_name, int32_t timeout, char **value )
 /*----------------------------------------------------------------------------*/
 /*                             Internal functions                             */
 /*----------------------------------------------------------------------------*/
-static int __ccsplite_get_json( const char *obj_name, int32_t timeout,
-                                cJSON **obj )
+static int __get_json( const char *obj_name, int32_t timeout, cJSON **tree )
 {
     //const char const *url_fmt = "http://localhost:62000/config?name=%s";
     const char const *url_fmt = "http://localhost:8080/?name=%s";
@@ -170,9 +215,7 @@ static int __ccsplite_get_json( const char *obj_name, int32_t timeout,
             curl_easy_setopt( curl, CURLOPT_WRITEDATA, &payload );
             res = curl_easy_perform( curl );
 
-            printf( "RV: %d\n", res );
             if( CURLE_OK == res ) {
-                char *ct;
                 cJSON_Hooks hooks = {
                     .malloc_fn = malloc,
                     .free_fn = free,
@@ -180,7 +223,7 @@ static int __ccsplite_get_json( const char *obj_name, int32_t timeout,
 
                 cJSON_InitHooks( &hooks );
 
-                *obj = cJSON_Parse( payload.buf );
+                *tree = cJSON_Parse( payload.buf );
 
                 rv = 0;
             }
@@ -225,4 +268,19 @@ static size_t __write_fn( void *p, size_t size, size_t nmemb, void *stream )
     }
 
     return rv;
+}
+
+static cJSON* __find_value_field( cJSON *tree )
+{
+    cJSON *p;
+
+    p = cJSON_GetObjectItem( tree, "parameters" );
+    if( NULL != p ) {
+        p = cJSON_GetArrayItem( p, 0 );
+        if( NULL != p ) {
+            p = cJSON_GetObjectItem( p, "value" );
+        }
+    }
+
+    return p;
 }
