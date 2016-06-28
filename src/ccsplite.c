@@ -30,7 +30,10 @@
 /*----------------------------------------------------------------------------*/
 /*                               Data Structures                              */
 /*----------------------------------------------------------------------------*/
-/* none */
+struct payload {
+    char *buf;
+    size_t len;
+};
 
 /*----------------------------------------------------------------------------*/
 /*                            File Scoped Variables                           */
@@ -42,6 +45,7 @@
 /*----------------------------------------------------------------------------*/
 static int __ccsplite_get_json( const char *obj_name, int32_t timeout,
                                 cJSON **obj );
+static size_t __write_fn( void *p, size_t size, size_t nmemb, void *stream );
 
 /*----------------------------------------------------------------------------*/
 /*                             External Functions                             */
@@ -135,9 +139,13 @@ int ccsplite_get_string( const char *obj_name, int32_t timeout, char **value )
 static int __ccsplite_get_json( const char *obj_name, int32_t timeout,
                                 cJSON **obj )
 {
-    const char const *url_fmt = "http://localhost:62000/config?name=%s";
+    //const char const *url_fmt = "http://localhost:62000/config?name=%s";
+    const char const *url_fmt = "http://localhost:8080/?name=%s";
     size_t len;
     char *url;
+    int rv;
+
+    rv = -1;
 
     /* Do the heavy lifting in here. */
     len = snprintf( NULL, 0, url_fmt, obj_name );
@@ -150,22 +158,71 @@ static int __ccsplite_get_json( const char *obj_name, int32_t timeout,
         curl = curl_easy_init();
         if( curl ) {
             CURLcode res;
+            struct payload payload;
+
+            payload.buf = NULL;
+            payload.len = 0;
+
             /* Do the right thing here. */
-            curl_easy_setopt( curl, CURLOPT_URL, "http://localhost:62000" );
+            curl_easy_setopt( curl, CURLOPT_URL, url );
             curl_easy_setopt( curl, CURLOPT_TIMEOUT, (long) timeout );
+            curl_easy_setopt( curl, CURLOPT_WRITEFUNCTION, __write_fn );
+            curl_easy_setopt( curl, CURLOPT_WRITEDATA, &payload );
             res = curl_easy_perform( curl );
 
+            printf( "RV: %d\n", res );
             if( CURLE_OK == res ) {
-                printf( "done.\n" );
+                char *ct;
+                cJSON_Hooks hooks = {
+                    .malloc_fn = malloc,
+                    .free_fn = free,
+                };
 
-                /* Do something with the object */
-                (void) obj;
+                cJSON_InitHooks( &hooks );
+
+                *obj = cJSON_Parse( payload.buf );
+
+                rv = 0;
+            }
+
+            if( NULL != payload.buf ) {
+                free( payload.buf );
             }
 
             curl_easy_cleanup( curl );
-            return 0;
         }
     }
 
-    return -1;
+    return rv;
+}
+
+static size_t __write_fn( void *p, size_t size, size_t nmemb, void *stream )
+{
+    struct payload *payload;
+    size_t new_len;
+    char *buf;
+    size_t rv;
+
+    rv = (size * nmemb) + 1; /* Error case */
+
+    payload = (struct payload*) stream;
+
+    new_len = payload->len + (nmemb * size);
+    buf = (char*) malloc( sizeof(char) * (new_len + 1) );
+    if( NULL != buf ) {
+        if( NULL != payload->buf ) {
+            memcpy( buf, payload->buf, payload->len );
+            free( payload->buf );
+            payload->buf = buf;
+            *buf += (payload->len * sizeof(char));
+        } else {
+            payload->buf = buf;
+        }
+
+        rv = size * nmemb;
+        memcpy( buf, p, rv );
+        payload->len = new_len;
+    }
+
+    return rv;
 }
