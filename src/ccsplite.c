@@ -241,7 +241,7 @@ int ccsplite_get_string( const char *obj_name, int32_t timeout, char **value )
  */
 static int __get_json( const char *obj_name, int32_t timeout, cJSON **tree )
 {
-    const char const *url_fmt = "http://localhost:62000/config?name=%s";
+    const char const *url_fmt = "http://localhost:62000/config/%s";
     size_t len;
     char *url;
     int rv;
