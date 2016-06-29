@@ -25,7 +25,7 @@ install:
     - sudo apt-get install -y -qq libcunit1 libcunit1-dev lcov libcurl4-openssl-dev
 
 before_script:
-    - node tests/simple.js
+    - node tests/simple.js &
 
 script:
     - mkdir build
