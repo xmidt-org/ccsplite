@@ -22,6 +22,15 @@ var server = http.createServer(function (request, response) {
         s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":true,"dataType":2,"parameterCount":1,"message":"Success"}]}';
     } else if (-1 != request.url.indexOf("Device.BoolFalse")) {
         s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":false,"dataType":2,"parameterCount":1,"message":"Success"}]}';
+    } else if (-1 != request.url.indexOf("Device.StringString")) {
+        s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":"I am a string.","dataType":2,"parameterCount":1,"message":"Success"}]}';
+    } else if (-1 != request.url.indexOf("Device.NonJson")) {
+        s = 'unknown';
+    } else if (-1 != request.url.indexOf("Device.WrongDom")) {
+        s = '{"not-the-right-format": -1}';
+    } else if (-1 != request.url.indexOf("Device.Delay5")) {
+        setTimeout(function(){s = 'bad'}, 5000);
+        s = '{"timeout": -1}';
     } else {
         s = 'unknown';
     }

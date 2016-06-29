@@ -27,24 +27,49 @@ void test_bool()
     int rv;
     bool b;
 
-    rv = ccsplite_get_bool( "Device.Invalid.Param", 10, &b );
+    /* Make sure the value isn't modified on failure. */
+    b = true;
+    rv = ccsplite_get_bool( "Device.NonJson", 1, &b );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_TRUE( b );
+
+    /* Make sure the value isn't modified on failure. */
+    b = false;
+    rv = ccsplite_get_bool( "Device.NonJson", 1, &b );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_FALSE( b );
+
+    /* Make sure we can handle a DOM mismatch. */
+    rv = ccsplite_get_bool( "Device.WrongDom", 1, &b );
     CU_ASSERT_NOT_EQUAL( 0, rv );
 
-    rv = ccsplite_get_bool( "Device.BoolStringTrue", 10, &b );
+    /* Handle a wrong type. */
+    rv = ccsplite_get_bool( "Device.IntInt512", 1, &b );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+
+    rv = ccsplite_get_bool( "Device.StringString", 1, &b );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+
+    /* Normal cases. */
+    rv = ccsplite_get_bool( "Device.BoolStringTrue", 1, &b );
     CU_ASSERT_EQUAL( 0, rv );
     CU_ASSERT_TRUE( b );
 
-    rv = ccsplite_get_bool( "Device.BoolStringFalse", 10, &b );
+    rv = ccsplite_get_bool( "Device.BoolStringFalse", 1, &b );
     CU_ASSERT_EQUAL( 0, rv );
     CU_ASSERT_FALSE( b );
 
-    rv = ccsplite_get_bool( "Device.BoolFalse", 10, &b );
+    rv = ccsplite_get_bool( "Device.BoolFalse", 1, &b );
     CU_ASSERT_EQUAL( 0, rv );
     CU_ASSERT_FALSE( b );
 
-    rv = ccsplite_get_bool( "Device.BoolTrue", 10, &b );
+    rv = ccsplite_get_bool( "Device.BoolTrue", 1, &b );
     CU_ASSERT_EQUAL( 0, rv );
     CU_ASSERT_TRUE( b );
+
+    /* Timeout case. */
+    rv = ccsplite_get_bool( "Device.Delay5", 1, &b );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
 }
 
 void test_int32_t()
@@ -52,24 +77,47 @@ void test_int32_t()
     int rv;
     int32_t i32;
 
-    rv = ccsplite_get_int32( "Device.Invalid.Param", 10, &i32 );
+    /* Make sure the value isn't modified on failure. */
+    i32 = 999;
+    rv = ccsplite_get_int32( "Device.NonJson", 1, &i32 );
     CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( i32, 999 );
 
-    rv = ccsplite_get_int32( "Device.IntString512", 10, &i32 );
+    /* Make sure we can handle a DOM mismatch. */
+    i32 = 999;
+    rv = ccsplite_get_int32( "Device.WrongDom", 1, &i32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( i32, 999 );
+
+    /* Handle a wrong type. */
+    rv = ccsplite_get_int32( "Device.BoolFalse", 1, &i32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( i32, 999 );
+
+    rv = ccsplite_get_int32( "Device.StringString", 1, &i32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( i32, 999 );
+
+    /* Normal cases. */
+    rv = ccsplite_get_int32( "Device.IntString512", 1, &i32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( i32, 512 );
 
-    rv = ccsplite_get_int32( "Device.IntStringMinus512", 10, &i32 );
+    rv = ccsplite_get_int32( "Device.IntStringMinus512", 1, &i32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( i32, -512 );
 
-    rv = ccsplite_get_int32( "Device.IntInt512", 10, &i32 );
+    rv = ccsplite_get_int32( "Device.IntInt512", 1, &i32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( i32, 512 );
 
-    rv = ccsplite_get_int32( "Device.IntIntMinus512", 10, &i32 );
+    rv = ccsplite_get_int32( "Device.IntIntMinus512", 1, &i32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( i32, -512 );
+
+    /* Timeout case. */
+    rv = ccsplite_get_int32( "Device.Delay5", 1, &i32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv )
 }
 
 void test_uint32_t()
@@ -77,24 +125,48 @@ void test_uint32_t()
     int rv;
     uint32_t u32;
 
-    rv = ccsplite_get_uint32( "Device.Invalid.Param", 10, &u32 );
+    /* Make sure the value isn't modified on failure. */
+    u32 = 999;
+    rv = ccsplite_get_uint32( "Device.NonJson", 1, &u32 );
     CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( u32, 999 );
 
-    rv = ccsplite_get_uint32( "Device.IntString512", 10, &u32 );
+    /* Make sure we can handle a DOM mismatch. */
+    u32 = 999;
+    rv = ccsplite_get_uint32( "Device.WrongDom", 1, &u32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( u32, 999 );
+
+    /* Handle a wrong type. */
+    u32 = 999;
+    rv = ccsplite_get_uint32( "Device.BoolFalse", 1, &u32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( u32, 999 );
+
+    rv = ccsplite_get_uint32( "Device.StringString", 1, &u32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( u32, 999 );
+
+    /* Normal cases. */
+    rv = ccsplite_get_uint32( "Device.IntString512", 1, &u32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( u32, 512 );
 
-    rv = ccsplite_get_uint32( "Device.IntStringMinus512", 10, &u32 );
+    rv = ccsplite_get_uint32( "Device.IntStringMinus512", 1, &u32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( u32, 0xfffffe00 );
 
-    rv = ccsplite_get_uint32( "Device.IntInt512", 10, &u32 );
+    rv = ccsplite_get_uint32( "Device.IntInt512", 1, &u32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( u32, 512 );
 
-    rv = ccsplite_get_uint32( "Device.IntIntMinus512", 10, &u32 );
+    rv = ccsplite_get_uint32( "Device.IntIntMinus512", 1, &u32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( u32, 0xfffffe00 );
+
+    /* Timeout case. */
+    rv = ccsplite_get_uint32( "Device.Delay5", 1, &u32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv )
 }
 
 void test_string()
@@ -103,10 +175,44 @@ void test_string()
     char *val;
     const char const *dont_modify = "don't modify";
 
+    /* Make sure the value isn't modified on failure. */
     val = (char*) dont_modify;
-    rv = ccsplite_get_string( "Device.Invalid.Param", 10, &val );
+    rv = ccsplite_get_string( "Device.NonJson", 1, &val );
     CU_ASSERT_NOT_EQUAL( 0, rv );
     CU_ASSERT_EQUAL( dont_modify, val );
+
+    /* Make sure we can handle a DOM mismatch. */
+    rv = ccsplite_get_string( "Device.WrongDom", 1, &val );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( dont_modify, val );
+
+    /* Handle a wrong type. */
+    rv = ccsplite_get_string( "Device.BoolFalse", 1, &val );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( dont_modify, val );
+
+    rv = ccsplite_get_string( "Device.IntInt512", 1, &val );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( dont_modify, val );
+
+    /* Normal cases. */
+    val = (char*) dont_modify;
+    rv = ccsplite_get_string( "Device.StringString", 1, &val );
+    CU_ASSERT_EQUAL( 0, rv );
+    CU_ASSERT_NOT_EQUAL( dont_modify, val );
+    CU_ASSERT_STRING_EQUAL( "I am a string.", val );
+    free( val );
+
+    val = (char*) dont_modify;
+    rv = ccsplite_get_string( "Device.IntString512", 1, &val );
+    CU_ASSERT_EQUAL( 0, rv );
+    CU_ASSERT_NOT_EQUAL( dont_modify, val );
+    CU_ASSERT_STRING_EQUAL( "512", val );
+    free( val );
+
+    /* Timeout case. */
+    rv = ccsplite_get_string( "Device.Delay5", 1, &val );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
 }
 
 void add_suites( CU_pSuite *suite )

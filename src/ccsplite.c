@@ -194,8 +194,16 @@ int ccsplite_get_string( const char *obj_name, int32_t timeout, char **value )
     json = NULL;
     rv = __get_json( obj_name, timeout, &json );
     if( 0 == rv ) {
-        if( cJSON_String == json->type ) {
-            *value = strdup( json->valuestring );
+        cJSON *json_val;
+
+        json_val = __find_value_field( json );
+
+        rv = -1;
+        if( NULL != json_val ) {
+            if( cJSON_String == json_val->type ) {
+                *value = strdup( json_val->valuestring );
+                rv = 0;
+            }
         }
 
         cJSON_Delete( json );
