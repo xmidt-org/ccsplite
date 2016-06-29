@@ -35,8 +35,6 @@
 int ccsplite_get_bool(const char *obj_name, int32_t timeout, bool *value);
 int ccsplite_get_int32(const char *obj_name, int32_t timeout, int32_t *value);
 int ccsplite_get_uint32(const char *obj_name, int32_t timeout, uint32_t *value);
-int ccsplite_get_int64(const char *obj_name, int32_t timeout, int64_t *value);
-int ccsplite_get_uint64(const char *obj_name, int32_t timeout, uint64_t *value);
 int ccsplite_get_string(const char *obj_name, int32_t timeout, char **value);
 
 #endif

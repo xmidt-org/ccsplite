@@ -28,16 +28,38 @@ void test_bool()
     bool b;
 
     rv = ccsplite_get_bool( "Device.Invalid.Param", 10000, &b );
-    CU_ASSERT_NOT_EQUAL( 0, rv )
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+
+    rv = ccsplite_get_bool( "Device.BoolStringTrue", 10000, &b );
+    CU_ASSERT_EQUAL( 0, rv );
+    CU_ASSERT_TRUE( b );
+
+    rv = ccsplite_get_bool( "Device.BoolStringFalse", 10000, &b );
+    CU_ASSERT_EQUAL( 0, rv );
+    CU_ASSERT_FALSE( b );
+
+/*
+    rv = ccsplite_get_bool( "Device.BoolFalse", 10000, &b );
+    CU_ASSERT_EQUAL( 0, rv );
+    CU_ASSERT_FALSE( b );
+*/
+
+/*
+    rv = ccsplite_get_bool( "Device.BoolTrue", 10000, &b );
+    CU_ASSERT_EQUAL( 0, rv );
+    CU_ASSERT_TRUE( b );
+*/
 }
 
 void test_int32_t()
 {
+/*
     int rv;
     int32_t i32;
-    rv = ccsplite_get_int32( "Device.Valid.IntParam", 10000, &i32 );
+    rv = ccsplite_get_int32( "Device.IntString512", 10000, &i32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( i32, 512 );
+*/
 }
 
 void add_suites( CU_pSuite *suite )

@@ -51,6 +51,8 @@ static cJSON* __find_value_field( cJSON *tree );
 /*----------------------------------------------------------------------------*/
 /*                             External Functions                             */
 /*----------------------------------------------------------------------------*/
+
+/* See ccsplite.h for details. */
 int ccsplite_get_bool( const char *obj_name, int32_t timeout, bool *value )
 {
     int rv;
@@ -68,7 +70,7 @@ int ccsplite_get_bool( const char *obj_name, int32_t timeout, bool *value )
             switch( json_val->type ) {
                 case cJSON_Number:
                     *value = false;
-                    if( 0 != json->valueint ) {
+                    if( 0 != json_val->valueint ) {
                         *value = true;
                     }
                     rv = 0;
@@ -93,6 +95,8 @@ int ccsplite_get_bool( const char *obj_name, int32_t timeout, bool *value )
     return rv;
 }
 
+
+/* See ccsplite.h for details. */
 int ccsplite_get_int32( const char *obj_name, int32_t timeout, int32_t *value )
 {
     int rv;
@@ -135,30 +139,52 @@ int ccsplite_get_int32( const char *obj_name, int32_t timeout, int32_t *value )
     return rv;
 }
 
+
+/* See ccsplite.h for details. */
 int ccsplite_get_uint32( const char *obj_name, int32_t timeout, uint32_t *value )
 {
-    (void) obj_name;
-    (void) timeout;
-    (void) value;
-    return -1;
+    int rv;
+    cJSON *json;
+
+    json = NULL;
+    rv = __get_json( obj_name, timeout, &json );
+    if( 0 == rv ) {
+        cJSON *json_val;
+
+        json_val = __find_value_field( json );
+
+        rv = -1;
+        if( NULL != json_val ) {
+            switch( json_val->type ) {
+                case cJSON_Number:
+                    *value = (uint32_t) json_val->valueint;
+                    rv = 0;
+                    break;
+                case cJSON_String:
+                {
+                    uint32_t tmp;
+                    int _rv;
+
+                    _rv = sscanf( json_val->valuestring, "%" SCNu32, &tmp );
+                    if( 1 == _rv ) {
+                        *value = tmp;
+                        rv = 0;
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        cJSON_Delete( json );
+    }
+
+    return rv;
 }
 
-int ccsplite_get_int64( const char *obj_name, int32_t timeout, int64_t *value )
-{
-    (void) obj_name;
-    (void) timeout;
-    (void) value;
-    return -1;
-}
 
-int ccsplite_get_uint64( const char *obj_name, int32_t timeout, uint64_t *value )
-{
-    (void) obj_name;
-    (void) timeout;
-    (void) value;
-    return -1;
-}
-
+/* See ccsplite.h for details. */
 int ccsplite_get_string( const char *obj_name, int32_t timeout, char **value )
 {
     int rv;
@@ -178,14 +204,15 @@ int ccsplite_get_string( const char *obj_name, int32_t timeout, char **value )
 }
 
 
-
 /*----------------------------------------------------------------------------*/
 /*                             Internal functions                             */
 /*----------------------------------------------------------------------------*/
+
+/**
+ */
 static int __get_json( const char *obj_name, int32_t timeout, cJSON **tree )
 {
-    //const char const *url_fmt = "http://localhost:62000/config?name=%s";
-    const char const *url_fmt = "http://localhost:8080/?name=%s";
+    const char const *url_fmt = "http://localhost:62000/config?name=%s";
     size_t len;
     char *url;
     int rv;
@@ -239,6 +266,9 @@ static int __get_json( const char *obj_name, int32_t timeout, cJSON **tree )
     return rv;
 }
 
+
+/**
+ */
 static size_t __write_fn( void *p, size_t size, size_t nmemb, void *stream )
 {
     struct payload *payload;
@@ -270,6 +300,9 @@ static size_t __write_fn( void *p, size_t size, size_t nmemb, void *stream )
     return rv;
 }
 
+
+/**
+ */
 static cJSON* __find_value_field( cJSON *tree )
 {
     cJSON *p;
