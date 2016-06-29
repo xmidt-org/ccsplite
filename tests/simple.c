@@ -19,6 +19,7 @@
 #include <string.h>
 #include <CUnit/Basic.h>
 #include <stdbool.h>
+#include <curl/curl.h>
 
 #include "../src/ccsplite.h"
 
@@ -68,7 +69,7 @@ void test_bool()
     CU_ASSERT_TRUE( b );
 
     /* Timeout case. */
-    rv = ccsplite_get_bool( "Device.Delay5", 1, &b );
+    rv = ccsplite_get_bool( "Device.Delay2", 1, &b );
     CU_ASSERT_NOT_EQUAL( 0, rv );
 }
 
@@ -116,7 +117,7 @@ void test_int32_t()
     CU_ASSERT_EQUAL( i32, -512 );
 
     /* Timeout case. */
-    rv = ccsplite_get_int32( "Device.Delay5", 1, &i32 );
+    rv = ccsplite_get_int32( "Device.Delay2", 1, &i32 );
     CU_ASSERT_NOT_EQUAL( 0, rv )
 }
 
@@ -165,7 +166,7 @@ void test_uint32_t()
     CU_ASSERT_EQUAL( u32, 0xfffffe00 );
 
     /* Timeout case. */
-    rv = ccsplite_get_uint32( "Device.Delay5", 1, &u32 );
+    rv = ccsplite_get_uint32( "Device.Delay2", 1, &u32 );
     CU_ASSERT_NOT_EQUAL( 0, rv )
 }
 
@@ -210,18 +211,28 @@ void test_string()
     CU_ASSERT_STRING_EQUAL( "512", val );
     free( val );
 
+    val = (char*) dont_modify;
+    rv = ccsplite_get_string( "Device.LongString", 3, &val );
+    CU_ASSERT_EQUAL( 0, rv );
+    CU_ASSERT_NOT_EQUAL( dont_modify, val );
+    CU_ASSERT_STRING_EQUAL( "broken text", val );
+    free( val );
+
     /* Timeout case. */
-    rv = ccsplite_get_string( "Device.Delay5", 1, &val );
+    rv = ccsplite_get_string( "Device.Delay2", 1, &val );
     CU_ASSERT_NOT_EQUAL( 0, rv );
 }
 
 void add_suites( CU_pSuite *suite )
 {
     *suite = CU_add_suite( "ccsplite encoding tests", NULL, NULL );
+
     CU_add_test( *suite, "Test booleans", test_bool );
     CU_add_test( *suite, "Test int32_t", test_int32_t );
     CU_add_test( *suite, "Test uint32_t", test_uint32_t );
     CU_add_test( *suite, "Test string", test_string );
+
+    ccsplite_destroy();
 }
 
 /*----------------------------------------------------------------------------*/

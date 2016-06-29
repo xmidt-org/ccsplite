@@ -21,6 +21,26 @@
 #include <stdint.h>
 
 /**
+ *  Used to initialize the library before use.  Due to cURL, this must be
+ *  called 1 time before any multi-threaded use of the library occurs.
+ *
+ *  @note Due to cURL, this is not thread safe.
+ *  @note You do not need to call this function if you are single threaded.
+ */
+void ccsplite_init( void );
+
+
+/**
+ *  Used to clean up any memory before you exit.  This is mostly of interest
+ *  when using Valgrind for leak detection.
+ *
+ *  @note Due to cURL, once this is called, the library cannot be initialized
+ *        again and all calls to ccsplite will fail.
+ */
+void ccsplite_destroy( void );
+
+
+/**
  *  Provides the caller with the value of the specified TR-181 object.
  *
  *  @note An error will result if the wrong type function is called for

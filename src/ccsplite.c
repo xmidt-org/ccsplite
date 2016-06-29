@@ -39,7 +39,7 @@ struct payload {
 /*----------------------------------------------------------------------------*/
 /*                            File Scoped Variables                           */
 /*----------------------------------------------------------------------------*/
-/* none */
+static int __ccsplite_init = 0;
 
 /*----------------------------------------------------------------------------*/
 /*                             Function Prototypes                            */
@@ -51,6 +51,26 @@ static cJSON* __find_value_field( cJSON *tree );
 /*----------------------------------------------------------------------------*/
 /*                             External Functions                             */
 /*----------------------------------------------------------------------------*/
+
+/* See ccsplite.h for details. */
+void ccsplite_init( void )
+{
+    if( 0 == __ccsplite_init ) {
+        curl_global_init( CURL_GLOBAL_NOTHING );
+        __ccsplite_init = 1;
+    }
+}
+
+
+/* See ccsplite.h for details. */
+void ccsplite_destroy( void )
+{
+    if( 1 == __ccsplite_init ) {
+        curl_global_cleanup();
+        __ccsplite_init = 2;
+    }
+}
+
 
 /* See ccsplite.h for details. */
 int ccsplite_get_bool( const char *obj_name, int32_t timeout, bool *value )
@@ -236,44 +256,53 @@ static int __get_json( const char *obj_name, int32_t timeout, cJSON **tree )
 
         sprintf( url, url_fmt, obj_name );
 
-        curl = curl_easy_init();
-        if( curl ) {
-            CURLcode res;
-            struct payload payload;
-
-            payload.buf = NULL;
-            payload.len = 0;
-
-            /* Do the right thing here. */
-            curl_easy_setopt( curl, CURLOPT_URL, url );
-            curl_easy_setopt( curl, CURLOPT_TIMEOUT, (long) timeout );
-            curl_easy_setopt( curl, CURLOPT_WRITEFUNCTION, __write_fn );
-            curl_easy_setopt( curl, CURLOPT_WRITEDATA, &payload );
-            res = curl_easy_perform( curl );
-
-            if( CURLE_OK == res ) {
-                cJSON *tmp;
-
-                cJSON_Hooks hooks = {
-                    .malloc_fn = malloc,
-                    .free_fn = free,
-                };
-
-                cJSON_InitHooks( &hooks );
-
-                tmp = cJSON_Parse( payload.buf );
-                if( NULL != tmp ) {
-                    *tree = tmp;
-                    rv = 0;
-                }
-            }
-
-            if( NULL != payload.buf ) {
-                free( payload.buf );
-            }
-
-            curl_easy_cleanup( curl );
+        /* If the library has not been initialized, do it now for cURL. */
+        if( 0 == __ccsplite_init ) {
+            ccsplite_init();
         }
+
+        if( 1 == __ccsplite_init ) {
+            curl = curl_easy_init();
+            if( curl ) {
+                CURLcode res;
+                struct payload payload;
+
+                payload.buf = NULL;
+                payload.len = 0;
+
+                /* Do the right thing here. */
+                curl_easy_setopt( curl, CURLOPT_URL, url );
+                curl_easy_setopt( curl, CURLOPT_TIMEOUT, (long) timeout );
+                curl_easy_setopt( curl, CURLOPT_WRITEFUNCTION, __write_fn );
+                curl_easy_setopt( curl, CURLOPT_WRITEDATA, &payload );
+                res = curl_easy_perform( curl );
+
+                if( CURLE_OK == res ) {
+                    cJSON *tmp;
+
+                    cJSON_Hooks hooks = {
+                        .malloc_fn = malloc,
+                        .free_fn = free,
+                    };
+
+                    cJSON_InitHooks( &hooks );
+
+                    tmp = cJSON_Parse( payload.buf );
+                    if( NULL != tmp ) {
+                        *tree = tmp;
+                        rv = 0;
+                    }
+                }
+
+                if( NULL != payload.buf ) {
+                    free( payload.buf );
+                }
+
+                curl_easy_cleanup( curl );
+            }
+        }
+
+        free( url );
     }
 
     return rv;
@@ -300,7 +329,7 @@ static size_t __write_fn( void *p, size_t size, size_t nmemb, void *stream )
             memcpy( buf, payload->buf, payload->len );
             free( payload->buf );
             payload->buf = buf;
-            *buf += (payload->len * sizeof(char));
+            buf += (payload->len * sizeof(char));
         } else {
             payload->buf = buf;
         }

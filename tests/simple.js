@@ -5,7 +5,8 @@ var http = require('http');
 var server = http.createServer(function (request, response) {
     response.writeHead(200, {"Content-Type": "text/plain"});
 
-    var s = ''
+    var s = '';
+    var send_end = 1;
     if (-1 != request.url.indexOf("Device.IntString512")) {
         s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":"512","dataType":2,"parameterCount":1,"message":"Success"}]}';
     } else if (-1 != request.url.indexOf("Device.IntStringMinus512")) {
@@ -24,18 +25,28 @@ var server = http.createServer(function (request, response) {
         s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":false,"dataType":2,"parameterCount":1,"message":"Success"}]}';
     } else if (-1 != request.url.indexOf("Device.StringString")) {
         s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":"I am a string.","dataType":2,"parameterCount":1,"message":"Success"}]}';
+    } else if (-1 != request.url.indexOf("Device.LongString")) {
+        response.write('{"statusCode":200,"parameters":[{"name":"Device.Int","value":', "binary")
+        send_end = 0;
+        setTimeout( function() {
+                                    response.write('"broken text",', "binary");
+                                    response.end('"dataType":2,"parameterCount":1,"message":"Success"}]}');
+                               }, 1000 );
     } else if (-1 != request.url.indexOf("Device.NonJson")) {
         s = 'unknown';
     } else if (-1 != request.url.indexOf("Device.WrongDom")) {
         s = '{"not-the-right-format": -1}';
-    } else if (-1 != request.url.indexOf("Device.Delay5")) {
-        setTimeout(function(){s = 'bad'}, 5000);
+    } else if (-1 != request.url.indexOf("Device.Delay2")) {
+        send_end = 0;
         s = '{"timeout": -1}';
+        setTimeout( function() { response.end(s) }, 2000 );
     } else {
         s = 'unknown';
     }
 
-    response.end(s);
+    if (1 == send_end) {
+        response.end(s);
+    }
     //console.log(s);
 });
 
