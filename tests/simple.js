@@ -27,7 +27,7 @@ var server = http.createServer(function (request, response) {
     }
 
     response.end(s);
-    console.log(s);
+    //console.log(s);
 });
 
     // Listen on port 62000, IP defaults to localhost
