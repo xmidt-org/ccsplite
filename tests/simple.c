@@ -27,39 +27,86 @@ void test_bool()
     int rv;
     bool b;
 
-    rv = ccsplite_get_bool( "Device.Invalid.Param", 10000, &b );
+    rv = ccsplite_get_bool( "Device.Invalid.Param", 10, &b );
     CU_ASSERT_NOT_EQUAL( 0, rv );
 
-    rv = ccsplite_get_bool( "Device.BoolStringTrue", 10000, &b );
+    rv = ccsplite_get_bool( "Device.BoolStringTrue", 10, &b );
     CU_ASSERT_EQUAL( 0, rv );
     CU_ASSERT_TRUE( b );
 
-    rv = ccsplite_get_bool( "Device.BoolStringFalse", 10000, &b );
+    rv = ccsplite_get_bool( "Device.BoolStringFalse", 10, &b );
     CU_ASSERT_EQUAL( 0, rv );
     CU_ASSERT_FALSE( b );
 
-/*
-    rv = ccsplite_get_bool( "Device.BoolFalse", 10000, &b );
+    rv = ccsplite_get_bool( "Device.BoolFalse", 10, &b );
     CU_ASSERT_EQUAL( 0, rv );
     CU_ASSERT_FALSE( b );
-*/
 
-/*
-    rv = ccsplite_get_bool( "Device.BoolTrue", 10000, &b );
+    rv = ccsplite_get_bool( "Device.BoolTrue", 10, &b );
     CU_ASSERT_EQUAL( 0, rv );
     CU_ASSERT_TRUE( b );
-*/
 }
 
 void test_int32_t()
 {
-/*
     int rv;
     int32_t i32;
-    rv = ccsplite_get_int32( "Device.IntString512", 10000, &i32 );
+
+    rv = ccsplite_get_int32( "Device.Invalid.Param", 10, &i32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+
+    rv = ccsplite_get_int32( "Device.IntString512", 10, &i32 );
     CU_ASSERT_EQUAL( 0, rv )
     CU_ASSERT_EQUAL( i32, 512 );
-*/
+
+    rv = ccsplite_get_int32( "Device.IntStringMinus512", 10, &i32 );
+    CU_ASSERT_EQUAL( 0, rv )
+    CU_ASSERT_EQUAL( i32, -512 );
+
+    rv = ccsplite_get_int32( "Device.IntInt512", 10, &i32 );
+    CU_ASSERT_EQUAL( 0, rv )
+    CU_ASSERT_EQUAL( i32, 512 );
+
+    rv = ccsplite_get_int32( "Device.IntIntMinus512", 10, &i32 );
+    CU_ASSERT_EQUAL( 0, rv )
+    CU_ASSERT_EQUAL( i32, -512 );
+}
+
+void test_uint32_t()
+{
+    int rv;
+    uint32_t u32;
+
+    rv = ccsplite_get_uint32( "Device.Invalid.Param", 10, &u32 );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+
+    rv = ccsplite_get_uint32( "Device.IntString512", 10, &u32 );
+    CU_ASSERT_EQUAL( 0, rv )
+    CU_ASSERT_EQUAL( u32, 512 );
+
+    rv = ccsplite_get_uint32( "Device.IntStringMinus512", 10, &u32 );
+    CU_ASSERT_EQUAL( 0, rv )
+    CU_ASSERT_EQUAL( u32, 0xfffffe00 );
+
+    rv = ccsplite_get_uint32( "Device.IntInt512", 10, &u32 );
+    CU_ASSERT_EQUAL( 0, rv )
+    CU_ASSERT_EQUAL( u32, 512 );
+
+    rv = ccsplite_get_uint32( "Device.IntIntMinus512", 10, &u32 );
+    CU_ASSERT_EQUAL( 0, rv )
+    CU_ASSERT_EQUAL( u32, 0xfffffe00 );
+}
+
+void test_string()
+{
+    int rv;
+    char *val;
+    const char const *dont_modify = "don't modify";
+
+    val = (char*) dont_modify;
+    rv = ccsplite_get_string( "Device.Invalid.Param", 10, &val );
+    CU_ASSERT_NOT_EQUAL( 0, rv );
+    CU_ASSERT_EQUAL( dont_modify, val );
 }
 
 void add_suites( CU_pSuite *suite )
@@ -67,6 +114,8 @@ void add_suites( CU_pSuite *suite )
     *suite = CU_add_suite( "ccsplite encoding tests", NULL, NULL );
     CU_add_test( *suite, "Test booleans", test_bool );
     CU_add_test( *suite, "Test int32_t", test_int32_t );
+    CU_add_test( *suite, "Test uint32_t", test_uint32_t );
+    CU_add_test( *suite, "Test string", test_string );
 }
 
 /*----------------------------------------------------------------------------*/

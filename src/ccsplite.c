@@ -68,11 +68,12 @@ int ccsplite_get_bool( const char *obj_name, int32_t timeout, bool *value )
         rv = -1;
         if( NULL != json_val ) {
             switch( json_val->type ) {
-                case cJSON_Number:
+                case cJSON_False:
                     *value = false;
-                    if( 0 != json_val->valueint ) {
-                        *value = true;
-                    }
+                    rv = 0;
+                    break;
+                case cJSON_True:
+                    *value = true;
                     rv = 0;
                     break;
                 case cJSON_String:
@@ -243,6 +244,8 @@ static int __get_json( const char *obj_name, int32_t timeout, cJSON **tree )
             res = curl_easy_perform( curl );
 
             if( CURLE_OK == res ) {
+                cJSON *tmp;
+
                 cJSON_Hooks hooks = {
                     .malloc_fn = malloc,
                     .free_fn = free,
@@ -250,9 +253,11 @@ static int __get_json( const char *obj_name, int32_t timeout, cJSON **tree )
 
                 cJSON_InitHooks( &hooks );
 
-                *tree = cJSON_Parse( payload.buf );
-
-                rv = 0;
+                tmp = cJSON_Parse( payload.buf );
+                if( NULL != tmp ) {
+                    *tree = tmp;
+                    rv = 0;
+                }
             }
 
             if( NULL != payload.buf ) {

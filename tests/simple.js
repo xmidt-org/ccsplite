@@ -7,9 +7,9 @@ var server = http.createServer(function (request, response) {
 
     var s = ''
     if (-1 != request.url.indexOf("Device.IntString512")) {
-        s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":"-512","dataType":2,"parameterCount":1,"message":"Success"}]}';
-    } else if (-1 != request.url.indexOf("Device.IntStringMinus512")) {
         s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":"512","dataType":2,"parameterCount":1,"message":"Success"}]}';
+    } else if (-1 != request.url.indexOf("Device.IntStringMinus512")) {
+        s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":"-512","dataType":2,"parameterCount":1,"message":"Success"}]}';
     } else if (-1 != request.url.indexOf("Device.IntInt512")) {
         s = '{"statusCode":200,"parameters":[{"name":"Device.Int","value":512,"dataType":2,"parameterCount":1,"message":"Success"}]}';
     } else if (-1 != request.url.indexOf("Device.IntIntMinus512")) {
