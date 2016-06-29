@@ -257,9 +257,7 @@ static int __get_json( const char *obj_name, int32_t timeout, cJSON **tree )
         sprintf( url, url_fmt, obj_name );
 
         /* If the library has not been initialized, do it now for cURL. */
-        if( 0 == __ccsplite_init ) {
-            ccsplite_init();
-        }
+        ccsplite_init();
 
         if( 1 == __ccsplite_init ) {
             curl = curl_easy_init();

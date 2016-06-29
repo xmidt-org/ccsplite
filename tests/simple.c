@@ -231,8 +231,6 @@ void add_suites( CU_pSuite *suite )
     CU_add_test( *suite, "Test int32_t", test_int32_t );
     CU_add_test( *suite, "Test uint32_t", test_uint32_t );
     CU_add_test( *suite, "Test string", test_string );
-
-    ccsplite_destroy();
 }
 
 /*----------------------------------------------------------------------------*/
@@ -242,6 +240,8 @@ int main( void )
 {
     unsigned rv = 1;
     CU_pSuite suite = NULL;
+
+    ccsplite_init();
 
     if( CUE_SUCCESS == CU_initialize_registry() ) {
         add_suites( &suite );
@@ -257,6 +257,11 @@ int main( void )
 
         CU_cleanup_registry();
     }
+
+    ccsplite_destroy();
+
+    /* Make sure nothing bad happens if done more then once. */
+    ccsplite_destroy();
 
     if( 0 != rv ) {
         return 1;
